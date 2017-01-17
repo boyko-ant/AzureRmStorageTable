@@ -16,10 +16,10 @@ Copyright = '© Microsoft Corporation. All rights reserved.'
 Description = 'Sample functions to add/retrieve/update entities on Azure Storage Tables from PowerShell. It requires latest Azure PowerShell module installed, which can be downloaded from http://aka.ms/webpi-azps.'
 
 # HelpInfo URI of this module
-#HelpInfoUri = 'http://go.microsoft.com/fwlink/?LinkId=XXX'
+HelpInfoUri = 'https://blogs.technet.microsoft.com/paulomarques/2017/01/17/working-with-azure-storage-tables-from-powershell/'
 
 # Version number of this module
-ModuleVersion = '1.0.0.2'
+ModuleVersion = '1.0.0.4'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '4.0'
