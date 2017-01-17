@@ -26,11 +26,10 @@ Adds a row/entity to a specified table
 ### -------------------------- EXAMPLE 1 --------------------------
 ```
 # Adding a row
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext
 Add-StorageTableRow -table $table -partitionKey $partitionKey -rowKey (\[guid\]::NewGuid().tostring()) -property @{"firstName"="Paulo";"lastName"="Costa";"role"="presenter"}
+```
 
 ## PARAMETERS
 
@@ -115,11 +114,10 @@ Returns all rows/entities from a storage table - no filtering
 ### -------------------------- EXAMPLE 1 --------------------------
 ```
 # Getting all rows
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext
 Get-AzureStorageTableRowAll -table $table
+```
 
 ## PARAMETERS
 
@@ -158,11 +156,10 @@ Returns one or more rows/entities based on a specified column and its value
 ### -------------------------- EXAMPLE 1 --------------------------
 ```
 # Getting row by firstname
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext
 Get-AzureStorageTableRowByColumnName -table $table -columnName "firstName" -value "Paulo" -operator Equal
+```
 
 ## PARAMETERS
 
@@ -248,20 +245,18 @@ built using the Microsoft.WindowsAzure.Storage.Table.TableQuery class or direct 
 ### -------------------------- EXAMPLE 1 --------------------------
 ```
 # Getting row by firstname by using the class Microsoft.WindowsAzure.Storage.Table.TableQuery
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext
 Get-AzureStorageTableRowByCustomFilter -table $table -customFilter $finalFilter
+```
 
 ### -------------------------- EXAMPLE 2 --------------------------
 ```
 # Getting row by firstname by using text filter directly (oData filter format)
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext
 Get-AzureStorageTableRowByCustomFilter -table $table -customFilter "(firstName eq 'User1') and (lastName eq 'LastName1')"
+```
 
 ## PARAMETERS
 
@@ -314,11 +309,10 @@ Returns one or more rows/entities based on Partition Key
 ### -------------------------- EXAMPLE 1 --------------------------
 ```
 # Getting rows by partition Key
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext
 Get-AzureStorageTableRowByPartitionKey -table $table -partitionKey $newPartitionKey
+```
 
 ## PARAMETERS
 
@@ -380,8 +374,6 @@ It also can delete a row/entity using Partition and Row Key properties directly.
 ### -------------------------- EXAMPLE 1 --------------------------
 ```
 # Deleting an entry by entity PS Object
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext	
 \[string\]$filter1 = \[Microsoft.WindowsAzure.Storage.Table.TableQuery\]::GenerateFilterCondition("firstName",\[Microsoft.WindowsAzure.Storage.Table.QueryComparisons\]::Equal,"Paulo")
@@ -389,24 +381,23 @@ $table = Get-AzureStorageTable -Name $tableName -Context $saContext
 \[string\]$finalFilter = \[Microsoft.WindowsAzure.Storage.Table.TableQuery\]::CombineFilters($filter1,"and",$filter2)
 $personToDelete = Get-AzureStorageTableRowByCustomFilter -table $table -customFilter $finalFilter
 $personToDelete | Remove-AzureStorageTableRow -table $table
+```
 
 ### -------------------------- EXAMPLE 2 --------------------------
 ```
 # Deleting an entry by using partitionkey and row key directly
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext	
 Remove-AzureStorageTableRow -table $table -partitionKey "TableEntityDemoFullList" -rowKey "399b58af-4f26-48b4-9b40-e28a8b03e867"
+```
 
 ### -------------------------- EXAMPLE 3 --------------------------
 ```
 # Deleting everything
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext	
 Get-AzureStorageTableRowAll -table $table | Remove-AzureStorageTableRow -table $table
+```
 
 ## PARAMETERS
 
@@ -492,14 +483,13 @@ Notice that this cmdlet accepts only one entity per execution.
 ### -------------------------- EXAMPLE 1 --------------------------
 ```
 # Updating an entity
-```
-
 $saContext = (Get-AzureRmStorageAccount -ResourceGroupName $resourceGroup -Name $storageAccount).Context
 $table = Get-AzureStorageTable -Name $tableName -Context $saContext	
 \[string\]$filter = \[Microsoft.WindowsAzure.Storage.Table.TableQuery\]::GenerateFilterCondition("firstName",\[Microsoft.WindowsAzure.Storage.Table.QueryComparisons\]::Equal,"User1")
 $person = Get-AzureStorageTableRowByCustomFilter -table $table -customFilter $filter
 $person.lastName = "New Last Name"
 $person | Update-AzureStorageTableRow -table $table
+```
 
 ## PARAMETERS
 
