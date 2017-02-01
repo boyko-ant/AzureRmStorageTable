@@ -22,16 +22,16 @@
 		- Microsoft.WindowsAzure.Storage.dll
 		- System.Spatial.dll
 
-	3) Compress all files (including the PSM1 and PSD1 from this module) into a file called AzureRmStorageTable.zip
+	2) Compress all files (including the PSM1 and PSD1 from this module) into a file called AzureRmStorageTable.zip
 
-	4) At your Azure Automation account, open "Assets" and click on "Modules"
+	3) At your Azure Automation account, open "Assets" and click on "Modules"
 
-	5) Click "Browse gallery" and install the following modules in this order (please give some wait until functions get extracted between modules):
+	4) Click "Browse gallery" and install the following modules in this order (please give some wait until functions get extracted between modules):
 		1) AzureRM.profile
 		2) Azure.Storage
 		3) AzureRM.Storage
 
-	6) Back at the Modules blade, click "Add a module" and select your ZIP file with the required DLLs plus the AzureRmStorageTable module files
+	5) Back at the Modules blade, click "Add a module" and select your ZIP file with the required DLLs plus the AzureRmStorageTable module files
 
 #>
 
