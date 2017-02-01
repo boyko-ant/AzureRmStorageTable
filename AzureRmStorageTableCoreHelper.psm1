@@ -32,15 +32,15 @@
 		3) AzureRM.Storage
 
 	6) Back at the Modules blade, click "Add a module" and select your ZIP file with the required DLLs plus the AzureRmStorageTable module files
-	 
+
 #>
 
 #Checking if module is being executed in Azure Automation environment
 $runbookServerPath = "C:\modules\user"
 if (Test-Path -Path ($runbookServerPath))
 {
-	Load dlls from runbook server
-	Load dlls from runbook server
+	#Load dlls from runbook server
+	#Load dlls from runbook server
 	
 	$dlls = Get-ChildItem -Path (join-path $PSScriptRoot "*.dll")
 	foreach ($dll in $dlls)
