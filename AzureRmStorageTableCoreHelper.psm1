@@ -5,48 +5,95 @@
   	AzureRmStorageTableCoreHelper.psm1 - PowerShell Module that contains all functions related to manipulating Azure Storage Table rows/entities.
 .NOTES
 	Make sure the latest Azure PowerShell module is installed since we have a dependency on Microsoft.WindowsAzure.Storage.dll and 
-    Microsoft.WindowsAzure.Commands.Common.Storage.dll
+    Microsoft.WindowsAzure.Commands.Common.Storage.dll.
+
+	If running this module from Azure Automation, please make sure you follow these steps in order to execute it from that environment:
+	
+	1) After installing the latest version of Azure PowerShell module, copy the following DLLs from
+	   C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage
+	   to a folder with the source files of this module:
+	
+		- Microsoft.Azure.Common.dll
+		- Microsoft.Data.Edm.dll
+		- Microsoft.Data.OData.dll
+		- Microsoft.Data.Services.Client.dll
+		- Microsoft.WindowsAzure.Commands.Common.Storage.dll
+		- Microsoft.WindowsAzure.Commands.Storage.dll
+		- Microsoft.WindowsAzure.Storage.dll
+		- System.Spatial.dll
+
+	3) Compress all files (including the PSM1 and PSD1 from this module) into a file called AzureRmStorageTable.zip
+
+	4) At your Azure Automation account, open "Assets" and click on "Modules"
+
+	5) Click "Browse gallery" and install the following modules in this order (please give some wait until functions get extracted between modules):
+		1) AzureRM.profile
+		2) Azure.Storage
+		3) AzureRM.Storage
+
+	6) Back at the Modules blade, click "Add a module" and select your ZIP file with the required DLLs plus the AzureRmStorageTable module files
+	 
 #>
 
-#---------------------------------------------------------------
-# Loading Microsoft.WindowsAzure.StorageClient.dll fron .NET SDK
-#---------------------------------------------------------------
-$dllName = "Microsoft.WindowsAzure.Storage.dll"
-$pathToStorageDll = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage\$dllName"
-
-if (Test-Path -Path $pathToStorageDll)
+#Checking if module is being executed in Azure Automation environment
+$runbookServerPath = "C:\modules\user"
+if (Test-Path -Path ($runbookServerPath))
 {
-	[System.Reflection.Assembly]::LoadFrom($pathToStorageDll)
-}
-elseif (Test-Path -Path $(".\$dllName"))
-{
-	# Load dll from same folder as script
-	[System.Reflection.Assembly]::LoadFrom(".\$dllName")
+	Load dlls from runbook server
+	Load dlls from runbook server
+	
+	$dlls = Get-ChildItem -Path (join-path $PSScriptRoot "*.dll")
+	foreach ($dll in $dlls)
+	{
+		[System.Reflection.Assembly]::LoadFrom($dll.fullname)		
+	}
 }
 else
 {
-	throw "Azure PowerShell module must be installed in order to expose $dll file."		
+	# Excution is in a regular VM
+
+	#---------------------------------------------------------------
+	# Loading Microsoft.WindowsAzure.StorageClient.dll fron .NET SDK
+	#---------------------------------------------------------------
+	$dllName = "Microsoft.WindowsAzure.Storage.dll"
+	$localPathToStorageDll = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage\$dllName"
+
+	if (Test-Path -Path $localPathToStorageDll)
+	{
+		[System.Reflection.Assembly]::LoadFrom($localPathToStorageDll)
+	}
+	elseif (Test-Path -Path $(".\$dllName"))
+	{
+		# Load dll from same folder as script
+		[System.Reflection.Assembly]::LoadFrom(".\$dllName")
+	}
+	else
+	{
+		throw "Azure PowerShell module must be installed in order to expose $dllName file."		
+	}
+
+	#---------------------------------------------------------------------------------------
+	# Loading Microsoft.WindowsAzure.Commands.Common.Storage.dll for Azure PowerShell module
+	#---------------------------------------------------------------------------------------
+	$dllName = "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
+	$pathToCommonStorageDll = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage\$dllName"
+	$runbookServerPathToCommonStorageDll = "C:\modules\Global\Azure\Azure.Storage\$dllName"
+
+	if (Test-Path -Path $pathToCommonStorageDll)
+	{
+		[System.Reflection.Assembly]::LoadFrom($pathToCommonStorageDll)
+	}
+	elseif (Test-Path -Path $(".\$dllName"))
+	{
+		# Load dll from same folder as script
+		[System.Reflection.Assembly]::LoadFrom(".\$dllName")
+	}
+	else
+	{
+		throw "Azure PowerShell module must be installed in order to expose $dllName file."	
+	}	
 }
 
-#---------------------------------------------------------------------------------------
-# Loading Microsoft.WindowsAzure.Commands.Common.Storage.dll for Azure PowerShell module
-#---------------------------------------------------------------------------------------
-$dllName = "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
-$pathToStorageDll = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage\$dllName"
-
-if (Test-Path -Path $pathToStorageDll)
-{
-	[System.Reflection.Assembly]::LoadFrom($pathToStorageDll)
-}
-elseif (Test-Path -Path $(".\$dllName"))
-{
-	# Load dll from same folder as script
-	[System.Reflection.Assembly]::LoadFrom(".\$dllName")
-}
-else
-{
-	throw "Azure PowerShell module must be installed in order to expose $dll file."	
-}
 
 function Add-StorageTableRow
 {
@@ -73,7 +120,8 @@ function Add-StorageTableRow
 	param
 	(
 		[Parameter(Mandatory=$true)]
-		[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table,
+		$table,
+		#[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table,
 		
 		[Parameter(Mandatory=$true)]
         [String]$partitionKey,
@@ -151,7 +199,7 @@ function Get-AzureStorageTableRowAll
 	param
 	(
 		[Parameter(Mandatory=$true)]
-		[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table
+		$table
 	)
 
 	# No filtering
@@ -186,7 +234,7 @@ function Get-AzureStorageTableRowByPartitionKey
 	param
 	(
 		[Parameter(Mandatory=$true)]
-		[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table,
+		$table,
 
 		[Parameter(Mandatory=$true)]
 		[string]$partitionKey
@@ -235,7 +283,7 @@ function Get-AzureStorageTableRowByColumnName
 	param
 	(
 		[Parameter(Mandatory=$true)]
-		[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table,
+		$table,
 
 		[Parameter(Mandatory=$true)]
 		[string]$columnName,
@@ -292,7 +340,7 @@ function Get-AzureStorageTableRowByCustomFilter
 	param
 	(
 		[Parameter(Mandatory=$true)]
-		[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table,
+		$table,
 
 		[Parameter(Mandatory=$true)]
 		[string]$customFilter
@@ -338,7 +386,7 @@ function Update-AzureStorageTableRow
 	param
 	(
 		[Parameter(Mandatory=$true)]
-		[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table,
+		$table,
 
 		[Parameter(Mandatory=$true,ValueFromPipeline=$true)]
 		$entity
@@ -418,7 +466,7 @@ function Remove-AzureStorageTableRow
 	param
 	(
 		[Parameter(Mandatory=$true)]
-		[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table,
+		$table,
 
 		[Parameter(Mandatory=$true,ValueFromPipeline=$true,ParameterSetName="byEntityPSObjectObject")]
 		$entity,
