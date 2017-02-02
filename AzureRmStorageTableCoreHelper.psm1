@@ -203,7 +203,7 @@ function Get-AzureStorageTableRowAll
 	)
 
 	# No filtering
-	$tableQuery = [Microsoft.WindowsAzure.Storage.Table.TableQuery]::new()
+	$tableQuery = New-Object -TypeName Microsoft.WindowsAzure.Storage.Table.TableQuery
 
 	$result = $table.CloudTable.ExecuteQuery($tableQuery)
 
