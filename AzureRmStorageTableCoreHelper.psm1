@@ -35,66 +35,53 @@
 
 #>
 
-#Checking if module is being executed in Azure Automation environment
+# Checking if module is being executed in Azure Automation environment or standalone computer
 $runbookServerPath = "C:\modules\user"
+$dllsToLoad=@()
+
 if (Test-Path -Path ($runbookServerPath))
 {
 	#Load dlls from runbook server
-	#Load dlls from runbook server
-	
-	$dlls = Get-ChildItem -Path (join-path $PSScriptRoot "*.dll")
-	foreach ($dll in $dlls)
-	{
-		[System.Reflection.Assembly]::LoadFrom($dll.fullname)		
-	}
+	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Azure.Common.dll"
+	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.Edm.dll"
+	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.OData.dll"
+	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.Services.Client.dll"
+	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
+	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Commands.Storage.dll"
+	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Storage.dll"
+	$dllsToLoad += Join-Path $PSScriptRoot "System.Spatial.dll"
 }
 else
 {
-	# Excution is in a regular VM
-
-	#---------------------------------------------------------------
-	# Loading Microsoft.WindowsAzure.StorageClient.dll fron .NET SDK
-	#---------------------------------------------------------------
-	$dllName = "Microsoft.WindowsAzure.Storage.dll"
-	$localPathToStorageDll = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage\$dllName"
-
-	if (Test-Path -Path $localPathToStorageDll)
+	# Excution is in a regular computer
+	if (Test-Path "${env:ProgramFiles(x86)}\WindowsPowerShell\Modules\AzureRM.Storage")
 	{
-		[System.Reflection.Assembly]::LoadFrom($localPathToStorageDll)
+		$dllFolder = "${env:ProgramFiles(x86)}\WindowsPowerShell\Modules\AzureRM.Storage"
+		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Storage.dll"
+		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
 	}
-	elseif (Test-Path -Path $(".\$dllName"))
+	elseif (Test-Path "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage")
 	{
-		# Load dll from same folder as script
-		[System.Reflection.Assembly]::LoadFrom(".\$dllName")
+		$dllFolder = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage"
+		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Storage.dll"
+		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
 	}
-	else
-	{
-		throw "Azure PowerShell module must be installed in order to expose $dllName file."		
-	}
-
-	#---------------------------------------------------------------------------------------
-	# Loading Microsoft.WindowsAzure.Commands.Common.Storage.dll for Azure PowerShell module
-	#---------------------------------------------------------------------------------------
-	$dllName = "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
-	$pathToCommonStorageDll = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage\$dllName"
-	$runbookServerPathToCommonStorageDll = "C:\modules\Global\Azure\Azure.Storage\$dllName"
-
-	if (Test-Path -Path $pathToCommonStorageDll)
-	{
-		[System.Reflection.Assembly]::LoadFrom($pathToCommonStorageDll)
-	}
-	elseif (Test-Path -Path $(".\$dllName"))
-	{
-		# Load dll from same folder as script
-		[System.Reflection.Assembly]::LoadFrom(".\$dllName")
-	}
-	else
-	{
-		throw "Azure PowerShell module must be installed in order to expose $dllName file."	
-	}	
 }
 
+# Loading the dlls
+try
+{
+	foreach ($dll in $runbookServerDlls)
+	{
+		[System.Reflection.Assembly]::LoadFrom($dll)		
+	}
+}
+catch
+{
+	throw "An error ocurred trying to load required dlls, please make sure you have Azure PowerShell module installed, either through Install-Module AzureRm or web platform installer at http://aka.ms/webpi-azps.`nIf executing this module from Azure Automation, make sure you include the required Dlls with your Zip package as instructed in the documentation.`nError details: $_"
+}
 
+# Module Functions
 function Add-StorageTableRow
 {
 	<#
