@@ -1,4 +1,5 @@
-﻿<#
+﻿#Requires -Modules AzureRM.Profile, AzureRM.Storage, AzureRM.Resources, Azure.Storage
+<#
 .SYNOPSIS
 	AzureRmStorageTableCoreHelper.psm1 - PowerShell Module that contains all functions related to manipulating Azure Storage Table rows/entities.
 .DESCRIPTION
@@ -35,51 +36,53 @@
 
 #>
 
+
+
 # Checking if module is being executed in Azure Automation environment or standalone computer
-$runbookServerPath = "C:\modules\user"
-$dllsToLoad=@()
+# $runbookServerPath = "C:\modules\user"
+# $dllsToLoad=@()
 
-if (Test-Path -Path ($runbookServerPath))
-{
-	#Load dlls from runbook server
-	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Azure.Common.dll"
-	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.Edm.dll"
-	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.OData.dll"
-	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.Services.Client.dll"
-	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
-	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Commands.Storage.dll"
-	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Storage.dll"
-	$dllsToLoad += Join-Path $PSScriptRoot "System.Spatial.dll"
-}
-else
-{
-	# Excution is in a regular computer
-	if (Test-Path "${env:ProgramFiles(x86)}\WindowsPowerShell\Modules\AzureRM.Storage")
-	{
-		$dllFolder = "${env:ProgramFiles(x86)}\WindowsPowerShell\Modules\AzureRM.Storage"
-		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Storage.dll"
-		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
-	}
-	elseif (Test-Path "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage")
-	{
-		$dllFolder = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage"
-		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Storage.dll"
-		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
-	}
-}
+# if (Test-Path -Path ($runbookServerPath))
+# {
+# 	#Load dlls from runbook server
+# 	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Azure.Common.dll"
+# 	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.Edm.dll"
+# 	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.OData.dll"
+# 	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.Data.Services.Client.dll"
+# 	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
+# 	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Commands.Storage.dll"
+# 	$dllsToLoad += Join-Path $PSScriptRoot "Microsoft.WindowsAzure.Storage.dll"
+# 	$dllsToLoad += Join-Path $PSScriptRoot "System.Spatial.dll"
+# }
+# else
+# {
+# 	# Excution is in a regular computer
+# 	if (Test-Path "${env:ProgramFiles(x86)}\WindowsPowerShell\Modules\AzureRM.Storage")
+# 	{
+# 		$dllFolder = "${env:ProgramFiles(x86)}\WindowsPowerShell\Modules\AzureRM.Storage"
+# 		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Storage.dll"
+# 		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
+# 	}
+# 	elseif (Test-Path "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage")
+# 	{
+# 		$dllFolder = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureRM.Storage"
+# 		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Storage.dll"
+# 		$dllsToLoad += Join-Path $dllFolder "Microsoft.WindowsAzure.Commands.Common.Storage.dll"
+# 	}
+# }
 
-# Loading the dlls
-try
-{
-	foreach ($dll in $runbookServerDlls)
-	{
-		[System.Reflection.Assembly]::LoadFrom($dll)		
-	}
-}
-catch
-{
-	throw "An error ocurred trying to load required dlls, please make sure you have Azure PowerShell module installed, either through Install-Module AzureRm or web platform installer at http://aka.ms/webpi-azps.`nIf executing this module from Azure Automation, make sure you include the required Dlls with your Zip package as instructed in the documentation.`nError details: $_"
-}
+# # Loading the dlls
+# try
+# {
+# 	foreach ($dll in $runbookServerDlls)
+# 	{
+# 		[System.Reflection.Assembly]::LoadFrom($dll)		
+# 	}
+# }
+# catch
+# {
+# 	throw "An error ocurred trying to load required dlls, please make sure you have Azure PowerShell module installed, either through Install-Module AzureRm or web platform installer at http://aka.ms/webpi-azps.`nIf executing this module from Azure Automation, make sure you include the required Dlls with your Zip package as instructed in the documentation.`nError details: $_"
+# }
 
 # Module Functions
 function Add-StorageTableRow
@@ -108,7 +111,6 @@ function Add-StorageTableRow
 	(
 		[Parameter(Mandatory=$true)]
 		$table,
-		#[Microsoft.WindowsAzure.Commands.Common.Storage.ResourceModel.AzureStorageTable]$table,
 		
 		[Parameter(Mandatory=$true)]
         [String]$partitionKey,
@@ -158,6 +160,7 @@ function Get-PSObjectFromEntity
 			# Adding PartitionKey and RowKey to Object
 			Add-Member -InputObject $entityNewObj -Name "PartitionKey" -Value $entity.PartitionKey -MemberType NoteProperty
 			Add-Member -InputObject $entityNewObj -Name "RowKey" -Value $entity.RowKey -MemberType NoteProperty
+            Add-Member -InputObject $entityNewObj -Name "Timestamp" -Value $entity.Timestamp -MemberType NoteProperty
 
 			$returnObjects += $entityNewObj
 		}
