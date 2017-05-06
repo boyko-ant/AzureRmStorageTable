@@ -28,21 +28,30 @@ Describe "AzureRmStorageTable" {
             $context = $storage.Context
         }
 
-        Write-Host -for DarkGreen "Creating table $($uniqueString)"
-        $table = New-AzureStorageTable -Name $uniqueString -Context $context
+        $tables = [System.Collections.ArrayList]@()
+        $tableNames = @("$($uniqueString)insert", "$($uniqueString)delete")
+        foreach ($tableName in $tableNames) {
+            Write-Host -for DarkGreen "Creating table $($tableName)"
+            $table = New-AzureStorageTable -Name $tableName -Context $context
+            $tables.Add($table)
+        }
     }
 
     Context "Add-StorageTableRow" {
+        BeforeAll {
+            $tableInsert = $tables | Where-Object -Property Name -EQ "$($uniqueString)insert"
+        }
+
         It "Can add entity" {
             $expectedPK = "pk"
             $expectedRK = "rk"
 
-            Add-StorageTableRow -table $table `
+            Add-StorageTableRow -table $tableInsert `
                 -partitionKey $expectedPK `
                 -rowKey $expectedRK `
                 -property @{}
 
-            $entity = Get-AzureStorageTableRowAll -table $table
+            $entity = Get-AzureStorageTableRowAll -table $tableInsert
 
             $entity.PartitionKey | Should be $expectedPK
             $entity.RowKey | Should be $expectedRK
@@ -52,12 +61,12 @@ Describe "AzureRmStorageTable" {
             $expectedPK = ""
             $expectedRK = "rk"
 
-            Add-StorageTableRow -table $table `
+            Add-StorageTableRow -table $tableInsert `
                 -partitionKey $expectedPK `
                 -rowKey $expectedRK `
                 -property @{}
 
-            $entity = Get-AzureStorageTableRowByPartitionKey -table $table `
+            $entity = Get-AzureStorageTableRowByPartitionKey -table $tableInsert `
                 -partitionKey $expectedPK
 
             $entity.PartitionKey | Should be $expectedPK
@@ -68,12 +77,12 @@ Describe "AzureRmStorageTable" {
             $expectedPK = "pk"
             $expectedRK = ""
 
-            Add-StorageTableRow -table $table `
+            Add-StorageTableRow -table $tableInsert `
                 -partitionKey $expectedPK `
                 -rowKey $expectedRK `
                 -property @{}
 
-            $entity = Get-AzureStorageTableRowByColumnName -table $table `
+            $entity = Get-AzureStorageTableRowByColumnName -table $tableInsert `
                 -columnName "RowKey" -value $expectedRK -operator Equal
 
             $entity.PartitionKey | Should be $expectedPK
@@ -84,12 +93,12 @@ Describe "AzureRmStorageTable" {
             $expectedPK = ""
             $expectedRK = ""
 
-            Add-StorageTableRow -table $table `
+            Add-StorageTableRow -table $tableInsert `
                 -partitionKey $expectedPK `
                 -rowKey $expectedRK `
                 -property @{}
 
-            $entity = Get-AzureStorageTableRowByCustomFilter -table $table `
+            $entity = Get-AzureStorageTableRowByCustomFilter -table $tableInsert `
                 -customFilter "(PartitionKey eq '$($expectedPK)') and (RowKey eq '$($expectedRK)')"
 
             $entity.PartitionKey | Should be $expectedPK
@@ -97,11 +106,109 @@ Describe "AzureRmStorageTable" {
         }
     }
 
+    Context "Remove-AzureStorageTableRow" {
+        BeforeAll {
+            $tableDelete = $tables | Where-Object -Property Name -EQ "$($uniqueString)delete"
+        }
+
+        It "Can delete entity" {
+            $expectedPK = "pk"
+            $expectedRK = "rk"
+
+            Add-StorageTableRow -table $tableDelete `
+                -partitionKey $expectedPK `
+                -rowKey $expectedRK `
+                -property @{}
+
+            $entity = Get-AzureStorageTableRowAll -table $tableDelete
+
+            $entity | Should Not Be $null
+
+            Remove-AzureStorageTableRow -table $tableDelete `
+                -partitionKey $expectedPK -rowKey $expectedRK
+
+            $entity = Get-AzureStorageTableRowAll -table $tableDelete
+
+            $entity | Should Be $null
+        }
+
+        It "Can delete entity with empty partition key" {
+            $expectedPK = ""
+            $expectedRK = "rk"
+
+            Add-StorageTableRow -table $tableDelete `
+                -partitionKey $expectedPK `
+                -rowKey $expectedRK `
+                -property @{}
+
+            $entity = Get-AzureStorageTableRowByPartitionKey -table $tableDelete `
+                -partitionKey $expectedPK
+
+            $entity | Should Not Be $null
+
+            Remove-AzureStorageTableRow -table $tableDelete `
+                -partitionKey $expectedPK -rowKey $expectedRK
+
+            $entity = Get-AzureStorageTableRowByPartitionKey -table $tableDelete `
+                -partitionKey $expectedPK
+
+            $entity | Should Be $null
+        }
+
+        It "Can delete entity with empty row key" {
+            $expectedPK = "pk"
+            $expectedRK = ""
+
+            Add-StorageTableRow -table $tableDelete `
+                -partitionKey $expectedPK `
+                -rowKey $expectedRK `
+                -property @{}
+
+            $entity = Get-AzureStorageTableRowByColumnName -table $tableDelete `
+                -columnName "RowKey" -value $expectedRK -operator Equal
+
+            $entity | Should Not Be $null
+
+            Remove-AzureStorageTableRow -table $tableDelete `
+                -partitionKey $expectedPK -rowKey $expectedRK
+
+            $entity = Get-AzureStorageTableRowByColumnName -table $tableDelete `
+                -columnName "RowKey" -value $expectedRK -operator Equal
+
+            $entity | Should Be $null
+        }
+
+        It "Can delete entity with empty partition and row keys" {
+            $expectedPK = ""
+            $expectedRK = ""
+
+            Add-StorageTableRow -table $tableDelete `
+                -partitionKey $expectedPK `
+                -rowKey $expectedRK `
+                -property @{}
+
+            $entity = Get-AzureStorageTableRowByCustomFilter -table $tableDelete `
+                -customFilter "(PartitionKey eq '$($expectedPK)') and (RowKey eq '$($expectedRK)')"
+
+            $entity | Should Not Be $null
+
+            Remove-AzureStorageTableRow -table $tableDelete `
+                -partitionKey $expectedPK -rowKey $expectedRK
+
+            $entity = Get-AzureStorageTableRowByCustomFilter -table $tableDelete `
+                -customFilter "(PartitionKey eq '$($expectedPK)') and (RowKey eq '$($expectedRK)')"
+
+            $entity | Should Be $null
+        }
+    }
+
     AfterAll { 
         Write-Host -for DarkGreen "Cleanup in process"
 
         if ($useEmulator) {
-            Remove-AzureStorageTable -Context $context -Name $uniqueString -Force
+            foreach ($tableName in $tableNames) {
+                Remove-AzureStorageTable -Context $context -Name $tableName -Force
+            }
         } else {
             Remove-AzureRmResourceGroup -Name $uniqueString -Force
         }

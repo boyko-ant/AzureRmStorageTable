@@ -466,9 +466,11 @@ function Remove-AzureStorageTableRow
 		$entity,
 
 		[Parameter(Mandatory=$true,ParameterSetName="byPartitionandRowKeys")]
+		[AllowEmptyString()]
 		[string]$partitionKey,
 
 		[Parameter(Mandatory=$true,ParameterSetName="byPartitionandRowKeys")]
+		[AllowEmptyString()]
 		[string]$rowKey
 	)
 
