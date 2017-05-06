@@ -113,9 +113,11 @@ function Add-StorageTableRow
 		$table,
 		
 		[Parameter(Mandatory=$true)]
+		[AllowEmptyString()]
         [String]$partitionKey,
 
 		[Parameter(Mandatory=$true)]
+		[AllowEmptyString()]
         [String]$rowKey,
 
 		[Parameter(Mandatory=$true)]
@@ -227,6 +229,7 @@ function Get-AzureStorageTableRowByPartitionKey
 		$table,
 
 		[Parameter(Mandatory=$true)]
+		[AllowEmptyString()]
 		[string]$partitionKey
 	)
 	
@@ -279,6 +282,7 @@ function Get-AzureStorageTableRowByColumnName
 		[string]$columnName,
 
 		[Parameter(Mandatory=$true)]
+		[AllowEmptyString()]
 		[string]$value,
 
 		[Parameter(Mandatory=$true)]
@@ -462,9 +466,11 @@ function Remove-AzureStorageTableRow
 		$entity,
 
 		[Parameter(Mandatory=$true,ParameterSetName="byPartitionandRowKeys")]
+		[AllowEmptyString()]
 		[string]$partitionKey,
 
 		[Parameter(Mandatory=$true,ParameterSetName="byPartitionandRowKeys")]
+		[AllowEmptyString()]
 		[string]$rowKey
 	)
 
