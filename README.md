@@ -523,3 +523,24 @@ Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
+# Running automated tests
+
+## Prerequisites
+
+* [Pester](https://github.com/pester/Pester) - PowerShell BDD style testing framework
+* [Azure Storage Emulator](https://docs.microsoft.com/en-us/azure/storage/storage-use-emulator) or [Azure Subscription](https://azure.microsoft.com/en-us/free/)
+* [Azure Power Shell](https://docs.microsoft.com/en-us/powershell/azure/overview)
+
+## How to run automated tests
+
+### Before you run
+
+Please make sure that your Azure Storage Emulator is up and running if you want to run all tests agains it.
+
+### Run
+
+```
+PS> Invoke-Pester
+```
+
+![Invoke-Pester](AzureRmStorageTable-Pester.gif)
